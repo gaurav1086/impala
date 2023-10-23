@@ -81,6 +81,5 @@ class TestExtDataSources(ImpalaTestSuite):
     self.run_test_case('QueryTest/data-source-tables', vector)
 
   @SkipIfCatalogV2.data_sources_unsupported()
-  @SkipIf.not_hdfs
   def test_jdbc_data_source(self, vector):
     self.run_test_case('QueryTest/jdbc-data-source', vector)
