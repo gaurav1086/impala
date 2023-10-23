@@ -610,7 +610,8 @@ run-step-wait-all
 run-step "Running custom post-load steps" custom-post-load-steps.log \
     custom-post-load-steps
 
-if [ "${TARGET_FILESYSTEM}" = "hdfs" ]; then
+#if [ "${TARGET_FILESYSTEM}" = "hdfs" ]; then
+if [ "${TARGET_FILESYSTEM}" = "hdfs" -o "${TARGET_FILESYSTEM}" = "ozone" -o "${TARGET_FILESYSTEM}" = "s3" ]; then
   # Caching tables in s3 returns an IllegalArgumentException, see IMPALA-1714
   run-step "Caching test tables" cache-test-tables.log cache-test-tables
 
