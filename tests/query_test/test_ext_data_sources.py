@@ -60,14 +60,23 @@ class TestExtDataSources(ImpalaTestSuite):
     return properties
 
   @SkipIfCatalogV2.data_sources_unsupported()
-  @SkipIf.not_hdfs
+  # @SkipIf.not_hdfs
   def test_verify_jdbc_table_properties(self, vector):
     jdbc_tbl_name = "functional.alltypes_jdbc_datasource"
     properties = self._get_tbl_properties(jdbc_tbl_name)
     # Verify data source related table properties
     assert properties['__IMPALA_DATA_SOURCE_NAME'] == 'jdbcdatasource'
-    assert properties['__IMPALA_DATA_SOURCE_LOCATION'] == \
-        'hdfs://localhost:20500/test-warehouse/data-sources/jdbc-data-source.jar'
+    # assert properties['__IMPALA_DATA_SOURCE_LOCATION'] == \
+     #   'hdfs://localhost:20500/test-warehouse/data-sources/jdbc-data-source.jar'
+    if IS_HDFS :
+      assert properties['__IMPALA_DATA_SOURCE_LOCATION'] == \
+          'hdfs://localhost:20500/test-warehouse/data-sources/jdbc-data-source.jar'
+    elif IS_OZONE:
+      assert properties['__IMPALA_DATA_SOURCE_LOCATION'] == \
+           'ofs://localhost:9862/impala/test-warehouse/data-sources/jdbc-data-source.jar'
+    elif IS_S3:
+      assert properties['__IMPALA_DATA_SOURCE_LOCATION'] == \
+           's3a://impala-test-uswest2-2/test-warehouse/data-sources/jdbc-data-source.jar'
     assert properties['__IMPALA_DATA_SOURCE_CLASS'] == \
         'org.apache.impala.extdatasource.jdbc.JdbcDataSource'
     assert properties['__IMPALA_DATA_SOURCE_API_VERSION'] == 'V1'
