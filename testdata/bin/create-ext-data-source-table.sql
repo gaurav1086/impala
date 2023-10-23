@@ -69,7 +69,7 @@ PRODUCED BY DATA SOURCE JdbcDataSource(
 '{"database.type":"POSTGRES",
 "jdbc.url":"jdbc:postgresql://localhost:5432/functional",
 "jdbc.driver":"org.postgresql.Driver",
-"driver.url":"ozone:///test-warehouse/data-sources/jdbc-drivers/postgresql-jdbc.jar",
+"driver.url":"ofs://localhost:9862/impala/test-warehouse/data-sources/jdbc-data-source.jar"
 "dbcp.username":"hiveuser",
 "dbcp.password":"password",
 "table":"alltypes"}');
@@ -91,7 +91,7 @@ PRODUCED BY DATA SOURCE JdbcDataSource(
 '{"database.type":"POSTGRES",
 "jdbc.url":"jdbc:postgresql://localhost:5432/functional",
 "jdbc.driver":"org.postgresql.Driver",
-"driver.url":"ozone://localhost:20500/test-warehouse/data-sources/jdbc-drivers/postgresql-jdbc.jar",
+"driver.url":"ofs://localhost:9862/impala/test-warehouse/data-sources/jdbc-data-source.jar"
 "dbcp.username":"hiveuser",
 "dbcp.password":"password",
 "table":"AllTypesWithQuote",

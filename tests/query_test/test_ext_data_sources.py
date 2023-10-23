@@ -20,6 +20,8 @@ from __future__ import absolute_import, division, print_function
 from tests.common.impala_test_suite import ImpalaTestSuite
 from tests.common.skip import SkipIfCatalogV2, SkipIf
 from tests.common.test_dimensions import create_uncompressed_text_dimension
+from tests.util.filesystem_utils import IS_HDFS, IS_OZONE, IS_S3
+from tests.util.filesystem_utils import FILESYSTEM_PREFIX
 
 
 class TestExtDataSources(ImpalaTestSuite):
@@ -68,15 +70,9 @@ class TestExtDataSources(ImpalaTestSuite):
     assert properties['__IMPALA_DATA_SOURCE_NAME'] == 'jdbcdatasource'
     # assert properties['__IMPALA_DATA_SOURCE_LOCATION'] == \
      #   'hdfs://localhost:20500/test-warehouse/data-sources/jdbc-data-source.jar'
-    if IS_HDFS :
-      assert properties['__IMPALA_DATA_SOURCE_LOCATION'] == \
-          'hdfs://localhost:20500/test-warehouse/data-sources/jdbc-data-source.jar'
-    elif IS_OZONE:
-      assert properties['__IMPALA_DATA_SOURCE_LOCATION'] == \
-           'ofs://localhost:9862/impala/test-warehouse/data-sources/jdbc-data-source.jar'
-    elif IS_S3:
-      assert properties['__IMPALA_DATA_SOURCE_LOCATION'] == \
-           's3a://impala-test-uswest2-2/test-warehouse/data-sources/jdbc-data-source.jar'
+    expected_location = "{0}/test-warehouse/data-sources/jdbc-data-source.jar".format(FILESYSTEM_PREFIX)
+    assert properties['__IMPALA_DATA_SOURCE_LOCATION'] == expected_location
+
     assert properties['__IMPALA_DATA_SOURCE_CLASS'] == \
         'org.apache.impala.extdatasource.jdbc.JdbcDataSource'
     assert properties['__IMPALA_DATA_SOURCE_API_VERSION'] == 'V1'
