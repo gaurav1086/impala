@@ -19,6 +19,7 @@ package org.apache.impala.planner;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,12 +38,21 @@ import org.apache.impala.catalog.DataSource;
 import org.apache.impala.catalog.FeDataSourceTable;
 import org.apache.impala.common.ImpalaException;
 import org.apache.impala.common.InternalException;
+import org.apache.impala.common.InternalException;
 import org.apache.impala.extdatasource.ExternalDataSourceExecutor;
 import org.apache.impala.extdatasource.thrift.TBinaryPredicate;
 import org.apache.impala.extdatasource.thrift.TColumnDesc;
 import org.apache.impala.extdatasource.thrift.TComparisonOp;
 import org.apache.impala.extdatasource.thrift.TPrepareParams;
 import org.apache.impala.extdatasource.thrift.TPrepareResult;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.impala.common.FileSystemUtil;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.impala.thrift.TBackendGflags;
+import org.apache.impala.service.BackendConfig;
+import com.google.common.base.Preconditions;
+import java.io.IOException;
 import org.apache.impala.service.FeSupport;
 import org.apache.impala.thrift.TCacheJarResult;
 import org.apache.impala.thrift.TColumnValue;
@@ -163,23 +173,29 @@ public class DataSourceScanNode extends ScanNode {
       }
     }
 
-    String hdfsLocation = table_.getDataSource().getHdfs_location();
-    TCacheJarResult cacheResult = FeSupport.CacheJar(hdfsLocation);
-    TStatus cacheJarStatus = cacheResult.getStatus();
-    if (cacheJarStatus.getStatus_code() != TErrorCode.OK) {
+    String driverUrl = table_.getDataSource().getHdfs_location();
+    String localPath = BackendConfig.INSTANCE.getBackendCfg().local_library_path;
+    String driverLocalPath = getJdbcDriverFromUri(driverUrl, localPath);
+
+    // TCacheJarResult cacheResult = FeSupport.CacheJar(hdfsLocation);
+    // TStatus cacheJarStatus = cacheResult.getStatus();
+    // if (cacheJarStatus.getStatus_code() != TErrorCode.OK) {
+    if (driverLocalPath == null) {
       throw new InternalException(String.format(
-          "Unable to cache data source library at location '%s'. Check that the file " +
-          "exists and is readable. Message: %s",
-          hdfsLocation, Joiner.on("\n").join(cacheJarStatus.getError_msgs())));
+        //  "Unable to cache data source library at location '%s'. Check that the file " +
+        //  "exists and is readable. Message: %s",
+        //  hdfsLocation, Joiner.on("\n").join(cacheJarStatus.getError_msgs())));
+         "Unable to fetch jdbc driver jar from location '%s'. ",
+                      driverUrl));
     }
-    String localPath = cacheResult.getLocal_path();
+    // String localPath = cacheResult.getLocal_path();
     String className = table_.getDataSource().getClass_name();
     String apiVersion = table_.getDataSource().getApi_version();
     TPrepareResult prepareResult;
     TStatus prepareStatus;
     try {
       ExternalDataSourceExecutor executor = new ExternalDataSourceExecutor(
-          localPath, className, apiVersion, table_.getInitString());
+          driverLocalPath, className, apiVersion, table_.getInitString());
       TPrepareParams prepareParams = new TPrepareParams();
       prepareParams.setInit_string(table_.getInitString());
       prepareParams.setPredicates(offeredPredicates);
@@ -380,4 +396,35 @@ public class DataSourceScanNode extends ScanNode {
 
   @Override
   public boolean hasStorageLayerConjuncts() { return !acceptedConjuncts_.isEmpty(); }
+
+  protected String getJdbcDriverFromUri(String driverUrl, String localLibPath)
+ // protected TCacheJarResult createWithLocalPath(String localLibPath, Function fn)
+      throws InternalException {
+    Path localJarPath = null;
+    Path remoteJarPath = null;
+    String uri = driverUrl;
+      String localJarPathString = null;
+      if (uri != null) {
+        localJarPath = new Path("file://" + localLibPath,
+            UUID.randomUUID().toString() + ".jar");
+        Preconditions.checkNotNull(localJarPath);
+        remoteJarPath = new Path(uri);
+      LOG.info("driverUrl: '{}'", driverUrl);
+      LOG.info("localJarPath: '{}'", localJarPath.toString());
+      LOG.info("remoteJarPath: '{}'", remoteJarPath.toString());
+        try {
+          FileSystem fs = remoteJarPath.getFileSystem(new Configuration());
+          FileSystemUtil.copyToLocal(remoteJarPath, localJarPath);
+          LOG.info("remote FileSystem scheme: '{}'", fs.getScheme());
+        } catch (IOException e) {
+          String errorMsg = "Couldn't copy " + uri + " to local path: " +
+              localJarPath.toString();
+          LOG.error(errorMsg, e);
+          throw new InternalException(errorMsg);
+        }
+        localJarPathString = localJarPath.toString();
+      }
+   //   return new HiveUdfLoader(localJarPathString, fn.getClassName());
+       return localJarPathString;
+  }
 }

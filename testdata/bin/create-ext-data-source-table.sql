@@ -22,7 +22,7 @@ USE functional;
 
 DROP DATA SOURCE IF EXISTS AllTypesDataSource;
 CREATE DATA SOURCE AllTypesDataSource
-LOCATION '/test-warehouse/data-sources/test-data-source.jar'
+LOCATION 'ofs://localhost:9862/impala/test-warehouse/data-sources/test-data-source.jar'
 CLASS 'org.apache.impala.extdatasource.AllTypesDataSource'
 API_VERSION 'V1';
 
@@ -48,7 +48,7 @@ PRODUCED BY DATA SOURCE AllTypesDataSource("TestInitString");
 
 DROP DATA SOURCE IF EXISTS JdbcDataSource;
 CREATE DATA SOURCE JdbcDataSource
-LOCATION '/test-warehouse/data-sources/jdbc-data-source.jar'
+LOCATION 'ofs://localhost:9862/impala/test-warehouse/data-sources/jdbc-data-source.jar'
 CLASS 'org.apache.impala.extdatasource.jdbc.JdbcDataSource'
 API_VERSION 'V1';
 
