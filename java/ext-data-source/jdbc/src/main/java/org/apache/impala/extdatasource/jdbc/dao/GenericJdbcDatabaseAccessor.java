@@ -40,6 +40,7 @@ import org.apache.impala.common.InternalException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.impala.common.FileSystemUtil;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.impala.extdatasource.jdbc.conf.JdbcStorageConfig;
 import org.apache.impala.extdatasource.jdbc.conf.JdbcStorageConfigManager;
 import org.apache.impala.extdatasource.jdbc.exception.JdbcDatabaseAccessException;
@@ -315,14 +316,21 @@ public class GenericJdbcDatabaseAccessor implements DatabaseAccessor {
  // protected TCacheJarResult createWithLocalPath(String localLibPath, Function fn)
       throws InternalException {
     Path localJarPath = null;
+    Path remoteJarPath = null;
     String uri = driverUrl;
       String localJarPathString = null;
       if (uri != null) {
         localJarPath = new Path("file://" + localLibPath,
             UUID.randomUUID().toString() + ".jar");
         Preconditions.checkNotNull(localJarPath);
+        remoteJarPath = new Path(uri);
+      LOG.info("driverUrl: '{}'", driverUrl);
+      LOG.info("localJarPath: '{}'", localJarPath.toString());
+      LOG.info("remoteJarPath: '{}'", remoteJarPath.toString());
         try {
-          FileSystemUtil.copyToLocal(new Path(uri), localJarPath);
+          FileSystem fs = remoteJarPath.getFileSystem(new Configuration());
+          FileSystemUtil.copyToLocal(remoteJarPath, localJarPath);
+          LOG.info("remote FileSystem scheme: '{}'", fs.getScheme());
         } catch (IOException e) {
           String errorMsg = "Couldn't copy " + uri + " to local path: " +
               localJarPath.toString();

@@ -623,7 +623,7 @@ if [ "${TARGET_FILESYSTEM}" = "hdfs" ]; then
   run-step "Logging created files" created-files.log hdfs dfs -ls -R /test-warehouse
 fi
 
-if [ "${TARGET_FILESYSTEM}" = "hdfs" || "${TARGET_FILESYSTEM}" = "ozone" || "${TARGET_FILESYSTEM}" = "s3" ]; then
+if [[ "${TARGET_FILESYSTEM}" = "hdfs" || "${TARGET_FILESYSTEM}" = "ozone" || "${TARGET_FILESYSTEM}" = "s3" ]]; then
   # TODO: Modify the .sql file that creates the table to take an alternative location into
   # account.
   run-step "Loading external data sources" load-ext-data-source.log \
