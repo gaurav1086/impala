@@ -406,7 +406,7 @@ public class DataSourceScanNode extends ScanNode {
     String uri = driverUrl;
       String localJarPathString = null;
       if (uri != null) {
-        localJarPath = new Path("file://" + localLibPath,
+        localJarPath = new Path("file:///" + localLibPath,
             UUID.randomUUID().toString() + ".jar");
         Preconditions.checkNotNull(localJarPath);
         remoteJarPath = new Path(uri);
