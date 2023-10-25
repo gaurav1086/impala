@@ -330,6 +330,9 @@ public class GenericJdbcDatabaseAccessor implements DatabaseAccessor {
       LOG.info("remoteJarPath: '{}'", remoteJarPath.toString());
         try {
           FileSystem fs = remoteJarPath.getFileSystem(new Configuration());
+          if (!fs.exists(localJarPath)) {
+              LOG.info("Remote file path does NOT exist'");
+          }
           FileSystemUtil.copyToLocal(remoteJarPath, localJarPath);
           LOG.info("remote FileSystem scheme: '{}'", fs.getScheme());
          FileChecksum localChecksum = fs.getFileChecksum(localJarPath);
