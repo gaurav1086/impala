@@ -41,6 +41,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.impala.common.FileSystemUtil;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.FileChecksum;
 import org.apache.impala.extdatasource.jdbc.conf.JdbcStorageConfig;
 import org.apache.impala.extdatasource.jdbc.conf.JdbcStorageConfigManager;
 import org.apache.impala.extdatasource.jdbc.exception.JdbcDatabaseAccessException;
@@ -320,7 +321,7 @@ public class GenericJdbcDatabaseAccessor implements DatabaseAccessor {
     String uri = driverUrl;
       String localJarPathString = null;
       if (uri != null) {
-        localJarPath = new Path("file://" + localLibPath,
+        localJarPath = new Path("file:///" + localLibPath,
             UUID.randomUUID().toString() + ".jar");
         Preconditions.checkNotNull(localJarPath);
         remoteJarPath = new Path(uri);
@@ -331,6 +332,13 @@ public class GenericJdbcDatabaseAccessor implements DatabaseAccessor {
           FileSystem fs = remoteJarPath.getFileSystem(new Configuration());
           FileSystemUtil.copyToLocal(remoteJarPath, localJarPath);
           LOG.info("remote FileSystem scheme: '{}'", fs.getScheme());
+         FileChecksum localChecksum = fs.getFileChecksum(localJarPath);
+         FileChecksum remoteChecksum = fs.getFileChecksum(remoteJarPath);
+         if (!localChecksum.equals(remoteChecksum)) {
+           LOG.info("checksum are NOT matching'");
+           throw new InternalException("Checksums are not matching");
+         }
+          
         } catch (IOException e) {
           String errorMsg = "Couldn't copy " + uri + " to local path: " +
               localJarPath.toString();

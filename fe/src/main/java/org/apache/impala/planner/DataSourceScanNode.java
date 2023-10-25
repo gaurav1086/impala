@@ -49,6 +49,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.impala.common.FileSystemUtil;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.FileChecksum;
 import org.apache.impala.thrift.TBackendGflags;
 import org.apache.impala.service.BackendConfig;
 import com.google.common.base.Preconditions;
@@ -416,6 +417,12 @@ public class DataSourceScanNode extends ScanNode {
           FileSystem fs = remoteJarPath.getFileSystem(new Configuration());
           FileSystemUtil.copyToLocal(remoteJarPath, localJarPath);
           LOG.info("remote FileSystem scheme: '{}'", fs.getScheme());
+          FileChecksum localChecksum = fs.getFileChecksum(localJarPath);
+          FileChecksum remoteChecksum = fs.getFileChecksum(remoteJarPath);
+          if (!localChecksum.equals(remoteChecksum)) {
+            LOG.info("checksum are NOT matching'");
+            throw new InternalException("Checksums are not matching");
+          }
         } catch (IOException e) {
           String errorMsg = "Couldn't copy " + uri + " to local path: " +
               localJarPath.toString();
