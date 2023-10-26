@@ -20,6 +20,7 @@ package org.apache.impala.planner;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.io.File;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +50,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.impala.common.FileSystemUtil;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.FileChecksum;
 import org.apache.impala.thrift.TBackendGflags;
 import org.apache.impala.service.BackendConfig;
 import com.google.common.base.Preconditions;
@@ -404,10 +404,12 @@ public class DataSourceScanNode extends ScanNode {
     Path localJarPath = null;
     Path remoteJarPath = null;
     String uri = driverUrl;
-      String localJarPathString = null;
+      String localJarString = null;
       if (uri != null) {
-        localJarPath = new Path("file:///" + localLibPath,
-            UUID.randomUUID().toString() + ".jar");
+        String childPath = "/" + UUID.randomUUID().toString() + ".jar";
+        localJarPath = new Path("file://" + localLibPath,
+            childPath);
+        localJarString = localLibPath + childPath; // its /tmp + "/" + "/UUID-number.jar
         Preconditions.checkNotNull(localJarPath);
         remoteJarPath = new Path(uri);
       LOG.info("driverUrl: '{}'", driverUrl);
@@ -415,26 +417,29 @@ public class DataSourceScanNode extends ScanNode {
       LOG.info("remoteJarPath: '{}'", remoteJarPath.toString());
         try {
           FileSystem fs = remoteJarPath.getFileSystem(new Configuration());
-          if (!fs.exists(localJarPath)) {
+          if (!fs.exists(remoteJarPath)) {
               LOG.info("Remote file path does NOT exist'");
           }
           FileSystemUtil.copyToLocal(remoteJarPath, localJarPath);
           LOG.info("remote FileSystem scheme: '{}'", fs.getScheme());
-          FileChecksum localChecksum = fs.getFileChecksum(localJarPath);
-          FileChecksum remoteChecksum = fs.getFileChecksum(remoteJarPath);
-          if (!localChecksum.equals(remoteChecksum)) {
-            LOG.info("checksum are NOT matching'");
-            throw new InternalException("Checksums are not matching");
+ 
+          // Check if the local jar exists
+          File f = new File(localJarString);
+          if (!f.exists()) {
+              LOG.info("ERROR: Local Jar Path does not exist'");
+          } else {
+             long bytes = f.length();
+             LOG.info("INFO: LOCAL JAR FILE SIZE: "+f.length());
           }
+          
         } catch (IOException e) {
           String errorMsg = "Couldn't copy " + uri + " to local path: " +
               localJarPath.toString();
           LOG.error(errorMsg, e);
           throw new InternalException(errorMsg);
         }
-        localJarPathString = localJarPath.toString();
       }
    //   return new HiveUdfLoader(localJarPathString, fn.getClassName());
-       return localJarPathString;
+       return localJarString;
   }
 }
