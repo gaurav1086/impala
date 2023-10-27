@@ -429,7 +429,7 @@ localJarPath = new Path(localUrl.toString());
           LOG.info("remote FileSystem scheme: '{}'", fs.getScheme());
  
           // Check if the local jar exists
-          File f = new File(localJarString);
+          File f = new File(localLibPath);
           if (!f.exists()) {
               LOG.info("ERROR: Local Jar Path does not exist'");
           } else {
