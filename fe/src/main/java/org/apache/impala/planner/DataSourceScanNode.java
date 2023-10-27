@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.UUID;
 import java.io.File;
 
+import java.net.URL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -404,18 +405,22 @@ public class DataSourceScanNode extends ScanNode {
     Path localJarPath = null;
     Path remoteJarPath = null;
     String uri = driverUrl;
-      String localJarString = null;
+    String localJarString = null;
+    localLibPath = "/tmp/" + UUID.randomUUID().toString() + ".jar";
       if (uri != null) {
-        String childPath = "/" + UUID.randomUUID().toString() + ".jar";
-        localJarPath = new Path("file://" + localLibPath,
-            childPath);
-        localJarString = localLibPath + childPath; // its /tmp + "/" + "/UUID-number.jar
+//        localJarPath = new Path("file://" + localLibPath);
+
+        try {
+URL baseUrl = new URL("file:///tmp");
+URL localUrl = new URL(baseUrl, String.format("%s", localLibPath));
+localJarPath = new Path(localUrl.toString());
+
+        //localJarString = localLibPath + childPath; // its /tmp + "/" + "/UUID-number.jar
         Preconditions.checkNotNull(localJarPath);
         remoteJarPath = new Path(uri);
       LOG.info("driverUrl: '{}'", driverUrl);
       LOG.info("localJarPath: '{}'", localJarPath.toString());
       LOG.info("remoteJarPath: '{}'", remoteJarPath.toString());
-        try {
           FileSystem fs = remoteJarPath.getFileSystem(new Configuration());
           if (!fs.exists(remoteJarPath)) {
               LOG.info("Remote file path does NOT exist'");
@@ -440,6 +445,6 @@ public class DataSourceScanNode extends ScanNode {
         }
       }
    //   return new HiveUdfLoader(localJarPathString, fn.getClassName());
-       return localJarString;
+       return localLibPath;
   }
 }
