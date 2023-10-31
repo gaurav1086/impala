@@ -69,7 +69,7 @@ PRODUCED BY DATA SOURCE JdbcDataSource(
 '{"database.type":"POSTGRES",
 "jdbc.url":"jdbc:postgresql://localhost:5432/functional",
 "jdbc.driver":"org.postgresql.Driver",
-"driver.url":"ofs://localhost:9862/impala/test-warehouse/data-sources/jdbc-drivers/postgresql-jdbc.jar"
+"driver.url":"ofs://localhost:9862/impala/test-warehouse/data-sources/jdbc-drivers/postgresql-jdbc.jar",
 "dbcp.username":"hiveuser",
 "dbcp.password":"password",
 "table":"alltypes"}');
