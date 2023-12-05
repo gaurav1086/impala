@@ -282,6 +282,12 @@ public class GenericJdbcDatabaseAccessor implements DatabaseAccessor {
       }
     }
 
+    String passwd = JdbcStorageConfigManager.getPasswordFromProperties(conf);
+    if (passwd != null) {
+      dbProperties.put(JdbcStorageConfigManager.removeDbcpPrefix(
+          JdbcStorageConfig.DBCP_PASSWORD.getPropertyName()), passwd);
+    }
+
     // essential properties
     dbProperties.put("url", conf.get(JdbcStorageConfig.JDBC_URL.getPropertyName()));
     dbProperties.put("driverClassName",
