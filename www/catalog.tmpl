@@ -19,6 +19,12 @@ under the License.
 {{> www/common-header.tmpl }}
 
 <h2>Catalog</h2>
+<h2>
+  {{?status}}
+  Status: active
+  {{/status}}
+</h2>
+
 
 {{?has_large_tables}}
 <div class="card">

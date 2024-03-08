@@ -790,6 +790,7 @@ void CatalogServer::CatalogUrlCallback(const Webserver::WebRequest& req,
     databases.PushBack(database, document->GetAllocator());
   }
   document->AddMember("databases", databases, document->GetAllocator());
+  document->AddMember("status", is_active_, document->GetAllocator());
 }
 
 void CatalogServer::GetCatalogUsage(Document* document) {
