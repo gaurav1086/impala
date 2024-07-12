@@ -114,8 +114,8 @@ do
 done
 
 # Add custom jars
-if [ -d /aux-jars -a "$(ls -A /aux-jars)" ]; then
-  CLASSPATH+=:/aux-jars
+if [ -d /opt/impala/aux-jars -a "$(ls -A /opt/impala/aux-jars)" ]; then
+  CLASSPATH+=:/opt/impala/aux-jars
 fi
 
 echo "CLASSPATH: $CLASSPATH"
